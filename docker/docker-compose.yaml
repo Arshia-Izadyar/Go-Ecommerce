@@ -93,7 +93,7 @@ services:
     environment:
       POSTGRES_USER: arshia
       POSTGRES_PASSWORD: a123
-      POSTGRES_DB: car_sale2
+      POSTGRES_DB: postgres
       PGDATA: /data/postgres
     volumes:
       - postgres:/data/postgres
@@ -120,17 +120,17 @@ services:
       - postgres
 
   ####################### REDIS #######################
-  redis:
-    image: redis:latest
-    container_name: redis_container
-    command: ["redis-server", "/etc/redis/redis.conf"]
-    volumes:
-      # - ./redis/redis.conf:/etc/redis/redis.conf
-      - redis:/etc/redis
-    ports:
-      - "6379:6379"
-    networks:
-      - webapi_network
+  # redis:
+  #   image: redis:latest
+  #   container_name: redis_container
+  #   # command: ["redis-server", "/etc/redis/redis.conf"]
+  #   volumes:
+  #     # - ./redis/redis.conf:/etc/redis/redis.conf
+  #     - redis:/etc/redis
+  #   ports:
+  #     - "6379:6379"
+  #   networks:
+  #     - webapi_network
 
   ##################### Monitoring #################
   # prometheus:
