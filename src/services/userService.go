@@ -2,7 +2,6 @@ package services
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/Arshia-Izadyar/Go-Ecommerce/src/api/dto"
@@ -150,7 +149,7 @@ func (us *UserService) UserVerify(req *dto.VerifyUserDTO) (bool, error) {
 
 func (us *UserService) LoginUser(req *dto.LoginRequestDto) (*dto.TokenDetailsDTO, error) {
 	var user models.User
-	err := us.DB.Model(&models.User{}).Where("user_name = ?", req.Username).First(&user).Error
+	err := us.DB.Model(&models.User{}).Where("user_name = ?", req.Username).Preload("UserRoles.Role").First(&user).Error
 	if err != nil {
 		return nil, err
 	}
@@ -170,26 +169,27 @@ func (us *UserService) LoginUser(req *dto.LoginRequestDto) (*dto.TokenDetailsDTO
 		return nil, err
 	}
 	if ext != nil {
-		// FIXME: get refresh token from redis and only generate access token
 		existingToken := *ext
 		tokenDTO := &dto.RefreshTokenDTO{
 			RefreshToken: existingToken,
 		}
 		claims, err := us.Token.RefreshToken(tokenDTO)
-		if err != nil {
-			log.Fatal(err)
+		if err == nil {
+			return claims, nil
 		}
-		fmt.Println(claims)
-		fmt.Printf("Refresh token already exists in Redis: %s\n", existingToken)
 	}
 
 	tokenDto := &dto.TokenDTO{
 		Username: user.UserName,
 		UserId:   user.Id,
 	}
+	fmt.Println(user.UserRoles)
 
 	if len(user.UserRoles) > 0 {
 		for _, role := range user.UserRoles {
+			fmt.Println(role.Role.Name)
+			fmt.Println(role.Role.Id)
+
 			tokenDto.Roles = append(tokenDto.Roles, role.Role.Name)
 		}
 	}
@@ -215,4 +215,12 @@ func (us *UserService) Logout(req *dto.LogoutRequestDto) error {
 		return err
 	}
 	return nil
+}
+
+func (us *UserService) RefreshToken(req *dto.RefreshTokenDTO) (*dto.TokenDetailsDTO, error) {
+	token, err := us.Token.RefreshToken(req)
+	if err != nil {
+		return nil, err
+	}
+	return token, nil
 }

@@ -19,4 +19,6 @@ const (
 
 	ACCESS_TOKEN  = "_ac_token"
 	REFRESH_TOKEN = "_rf_token"
+
+	AUTH_HEADER = "Authorization"
 )

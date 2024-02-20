@@ -12,4 +12,5 @@ func UserRouter(r *gin.RouterGroup, cfg *config.Config) {
 	r.POST("/verify", UsrHandler.VerifyUser)
 	r.POST("/login", UsrHandler.LoginUser)
 	r.POST("/logout", UsrHandler.LogoutUser)
+	r.POST("/refresh", UsrHandler.RefreshToken)
 }

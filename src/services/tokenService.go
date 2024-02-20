@@ -148,7 +148,7 @@ func (ts *TokenService) AddToBlacklist(token, tokenType string) (bool, error) {
 }
 
 func (ts *TokenService) IsBlackListed(token string) bool {
-	_, err := cache.Get[string](token)
+	_, err := cache.Get[bool](token)
 	return err == nil
 }
 
@@ -165,7 +165,7 @@ func (ts *TokenService) RefreshToken(req *dto.RefreshTokenDTO) (*dto.TokenDetail
 		return nil, &service_errors.ServiceError{EndUserMessage: service_errors.TokenInvalid}
 	}
 	if ts.IsBlackListed(req.RefreshToken) || claims[constants.TOKEN_TYPE_KEY] != constants.REFRESH_TOKEN {
-		return nil, &service_errors.ServiceError{EndUserMessage: service_errors.NotRefreshToken}
+		return nil, &service_errors.ServiceError{EndUserMessage: service_errors.TokenInvalid}
 	}
 
 	expTime := time.Unix(int64(claims[constants.REFRESH_TOKEN_EXPIRE].(float64)), 0)
@@ -178,7 +178,7 @@ func (ts *TokenService) RefreshToken(req *dto.RefreshTokenDTO) (*dto.TokenDetail
 	userId := claims[constants.USER_ID_KEY]
 	var user *models.User
 	db := database.GetDB()
-	err = db.Model(&models.User{}).Where("id = ?", userId).Find(&user).Error
+	err = db.Model(&models.User{}).Where("id = ?", userId).Preload("UserRoles.Role").Find(&user).Error
 	if err != nil {
 		return nil, &service_errors.ServiceError{EndUserMessage: service_errors.UserNotFound}
 	}
@@ -191,7 +191,13 @@ func (ts *TokenService) RefreshToken(req *dto.RefreshTokenDTO) (*dto.TokenDetail
 			tokenDTO.Roles = append(tokenDTO.Roles, role.Role.Name)
 		}
 	}
+	key := fmt.Sprintf("%s%s", user.UserName, constants.USER_REFRESH_KEY)
+
 	token, err := ts.GenerateToken(tokenDTO)
+	if err != nil {
+		return nil, err
+	}
+	err = cache.Set[string](key, token.RefreshToken, ts.cfg.JWT.RefreshTokenExpireDuration*time.Minute)
 	if err != nil {
 		return nil, err
 	}

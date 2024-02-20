@@ -81,6 +81,23 @@ func (uh *UserHandler) LogoutUser(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(400, helper.GenerateResponseWithError(err, 400, false))
 		return
 	}
-	ctx.JSON(204, helper.GenerateResponse("successfully logged out", 200, true))
+	ctx.JSON(204, helper.GenerateResponse("successfully logged out", 204, true))
+
+}
+
+func (uh *UserHandler) RefreshToken(ctx *gin.Context) {
+	req := &dto.RefreshTokenDTO{}
+	err := ctx.ShouldBindJSON(&req)
+	if err != nil {
+		ctx.AbortWithStatusJSON(400, helper.GenerateResponseWithValidationError(err, 400, false))
+		return
+	}
+	token, err := uh.service.RefreshToken(req)
+	if err != nil {
+		ctx.AbortWithStatusJSON(400, helper.GenerateResponseWithError(err, 400, false))
+		return
+	}
+	ctx.SetCookie("refresh", req.RefreshToken, int(uh.service.Cfg.JWT.RefreshTokenExpireDuration)*60*60, "/", "localhost", true, true)
+	ctx.JSON(200, helper.GenerateResponse(token, 200, true))
 
 }
