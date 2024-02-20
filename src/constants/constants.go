@@ -2,7 +2,7 @@ package constants
 
 const (
 	DEFAULT_ROLE_NAME = "user"
-	ADMIN_ROLE_NAME   = "user"
+	ADMIN_ROLE_NAME   = "admin"
 	ADMIN_USERNAME    = "admin"
 
 	// otp

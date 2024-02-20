@@ -4,9 +4,10 @@ type User struct {
 	BaseModel
 	UserName    string `gorm:"type:string;not null;unique;size:60"`
 	PhoneNumber string `gorm:"type:string;not null;unique;size:60"`
-	Password    string `gorm:type:string;not null`
+	Password    string `gorm:"type:string;not null"`
 	UserRoles   []UserRole
-	Verified    bool `gorm:type:boolean;default:false`
+	Verified    bool `gorm:"type:boolean;default:false"`
+	WishList    []UserWishList
 }
 
 type Role struct {

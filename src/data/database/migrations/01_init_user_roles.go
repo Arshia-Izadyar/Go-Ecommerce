@@ -21,6 +21,10 @@ func createTables(db *gorm.DB) {
 	tables = addTableIfNotExist(models.User{}, db, tables)
 	tables = addTableIfNotExist(models.Role{}, db, tables)
 	tables = addTableIfNotExist(models.UserRole{}, db, tables)
+	tables = addTableIfNotExist(models.Category{}, db, tables)
+	tables = addTableIfNotExist(models.Product{}, db, tables)
+	tables = addTableIfNotExist(models.ProductCategory{}, db, tables)
+	tables = addTableIfNotExist(models.UserWishList{}, db, tables)
 
 	err := db.Migrator().CreateTable(tables...)
 	if err != nil {
@@ -39,12 +43,15 @@ func addTableIfNotExist(model interface{}, db *gorm.DB, tables []interface{}) []
 	return tables
 }
 
-func createRoleIfNotExists(db *gorm.DB, r *models.Role) {
+func createRoleIfNotExists(db *gorm.DB, r *models.Role) int {
 	var exists bool
-	db.Model(models.Role{}).Where("name = ?", r.Name).Find(&exists)
+	var role models.Role
+	db.Model(models.Role{}).Where("name = ?", r.Name).Select("COUNT(*) > 0").Find(&exists)
 	if !exists {
-		db.Model(models.Role{}).Create(r)
+		db.Model(models.Role{}).Create(&models.Role{Name: r.Name}).Where("name = ?", r.Name).First(&role)
+		return role.Id
 	}
+	return 0
 }
 
 func createInitData(db *gorm.DB) {
@@ -55,7 +62,7 @@ func createInitData(db *gorm.DB) {
 	adminRole := &models.Role{
 		Name: constants.ADMIN_ROLE_NAME,
 	}
-	createRoleIfNotExists(db, adminRole)
+	adminId := createRoleIfNotExists(db, adminRole)
 
 	admin := &models.User{
 		UserName:    constants.ADMIN_USERNAME,
@@ -67,13 +74,13 @@ func createInitData(db *gorm.DB) {
 		log.Fatal(err)
 	}
 	admin.Password = string(bs)
-	createAdmin(admin, db, adminRole.Id)
+	createAdmin(admin, db, adminId)
 
 }
 
 func createAdmin(model *models.User, db *gorm.DB, roleId int) {
 	var exists bool
-	db.Model(&models.User{}).Where("username = ? ", model.UserName).Find(&exists)
+	db.Model(&models.User{}).Where("user_name = ? ", model.UserName).Select("COUNT(*) > 0").Find(&exists)
 	if !exists {
 		db.Model(&models.User{}).Create(model)
 		userRole := &models.UserRole{

@@ -7,6 +7,7 @@ import (
 	"github.com/Arshia-Izadyar/Go-Ecommerce/src/config"
 	"github.com/Arshia-Izadyar/Go-Ecommerce/src/data/cache"
 	"github.com/Arshia-Izadyar/Go-Ecommerce/src/data/database"
+	"github.com/Arshia-Izadyar/Go-Ecommerce/src/data/database/migrations"
 )
 
 func main() {
@@ -20,6 +21,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	// migrations.Init_01_user_roles()
+	migrations.Init_01_user_roles()
 	api.InitApp(cfg)
 }

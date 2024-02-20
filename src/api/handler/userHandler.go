@@ -97,7 +97,6 @@ func (uh *UserHandler) RefreshToken(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(400, helper.GenerateResponseWithError(err, 400, false))
 		return
 	}
-	ctx.SetCookie("refresh", req.RefreshToken, int(uh.service.Cfg.JWT.RefreshTokenExpireDuration)*60*60, "/", "localhost", true, true)
 	ctx.JSON(200, helper.GenerateResponse(token, 200, true))
 
 }
